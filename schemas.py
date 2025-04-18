@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, constr
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import re
 
 # Регулярное выражение для казахстанского номера телефона
@@ -60,15 +60,34 @@ class TokenData(BaseModel):
 class PromptBase(BaseModel):
     name: str
     prompt: str
+    pdf_book_id: Optional[int] = None
 
 class PromptCreate(PromptBase):
     pass
+
+class PDFBookBase(BaseModel):
+    book_reference: str
+
+class PDFBookCreate(PDFBookBase):
+    pass
+
+class PDFBook(PDFBookBase):
+    id: int
+    filename: str
+    user_id: int
+    json_content: Optional[Dict[str, Any]] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
 
 class Prompt(PromptBase):
     id: int
     user_id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
+    pdf_book: Optional['PDFBook'] = None
 
     class Config:
         from_attributes = True

@@ -20,12 +20,20 @@ def migrate():
         connection.execute(text("""
             ALTER TABLE prompts 
             ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-            ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE;
+            ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE,
+            ADD COLUMN IF NOT EXISTS pdf_book_id INTEGER REFERENCES pdf_books(id);
         """))
         
         connection.execute(text("""
             ALTER TABLE history 
             ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+        """))
+        
+        # Update pdf_books table to use JSON instead of binary content
+        connection.execute(text("""
+            ALTER TABLE pdf_books 
+            DROP COLUMN IF EXISTS file_content,
+            ADD COLUMN IF NOT EXISTS json_content JSONB;
         """))
         
         connection.commit()

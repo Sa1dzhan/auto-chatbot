@@ -13,12 +13,15 @@ async function handleResponse(response: Response) {
 }
 
 // Helper function to get auth headers
-function getAuthHeaders() {
+function getAuthHeaders(isFormData = false) {
   const token = localStorage.getItem("auth_token")
-  return {
-    "Content-Type": "application/json",
+  const headers: Record<string, string> = {
     Authorization: token ? `Bearer ${token}` : "",
   }
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json"
+  }
+  return headers
 }
 
 // User API
@@ -44,6 +47,47 @@ export const userApi = {
       method: "PUT",
       headers: getAuthHeaders(),
       body: JSON.stringify(passwordData),
+    })
+    return handleResponse(response)
+  },
+}
+
+// PDF Books API
+export const pdfBooksApi = {
+  uploadPDFBook: async (file: File, bookReference: string, promptId?: number) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('book_reference', bookReference)
+    if (promptId) {
+      formData.append('prompt_id', promptId.toString())
+    }
+
+    const response = await fetch(`${API_URL}/pdf-books`, {
+      method: 'POST',
+      headers: getAuthHeaders(true),
+      body: formData,
+    })
+    return handleResponse(response)
+  },
+  
+  getPDFBooks: async () => {
+    const response = await fetch(`${API_URL}/pdf-books`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+  
+  getPDFBookStatus: async (pdfId: number) => {
+    const response = await fetch(`${API_URL}/pdf-books/${pdfId}/status`, {
+      headers: getAuthHeaders(),
+    })
+    return handleResponse(response)
+  },
+  
+  deletePDFBook: async (pdfId: number) => {
+    const response = await fetch(`${API_URL}/pdf-books/${pdfId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
     })
     return handleResponse(response)
   },
@@ -94,4 +138,3 @@ export const historyApi = {
     return handleResponse(response)
   },
 }
-
